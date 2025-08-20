@@ -5,7 +5,7 @@ import Layout from "@/routes/layout";
 import LoginPage from "./routes/Pages/LoginPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
-import Dashboard from "./routes/Pages/dashboard";
+import Dashboard from "./routes/Pages/Dashboard.jsx";
 import AdminAppointments from "./routes/Pages/AdminAppointments";
 import InventoryPage from "./routes/Pages/InventoryPage";
 import AdminServices from "./routes/Pages/AdminServices";
