@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/combos';
+const API_URL = 'https://salon-backend-3l2q.onrender.com/api/combos';
 
 const getAuthHeaders = (token) => ({
   'x-auth-token': token,
@@ -21,7 +21,7 @@ export const fetchCombos = async (token) => {
 
 export const fetchServices = async (token) => {
   try {
-    const response = await axios.get('http://localhost:5000/api/services', {
+    const response = await axios.get('https://salon-backend-3l2q.onrender.com/api/services', {
       headers: getAuthHeaders(token)
     });
     return response.data;

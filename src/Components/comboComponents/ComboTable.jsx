@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { FiEdit2, FiTrash2, FiFilter, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiFilter, FiChevronLeft, FiChevronRight, FiChevronDown, FiChevronUp, FiInfo } from 'react-icons/fi';
 
 const ComboTable = ({ 
   combos, 
@@ -14,6 +14,17 @@ const ComboTable = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [expandedRows, setExpandedRows] = useState(new Set());
+
+  const toggleRowExpansion = (comboId) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(comboId)) {
+      newExpanded.delete(comboId);
+    } else {
+      newExpanded.add(comboId);
+    }
+    setExpandedRows(newExpanded);
+  };
 
   const filteredCombos = useMemo(() => {
     let filtered = [...combos];
@@ -61,14 +72,14 @@ const ComboTable = ({
   return (
     <div className="overflow-x-auto rounded-lg border border-gold-600">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-gray-900 border-b border-gold-600 gap-4">
-        <div className="flex items-center space-x-4 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
           <div className="relative flex items-center">
             <FiFilter className="text-gold-400 mr-2" />
             <select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
-                setCurrentPage(1); // Reset to first page when filter changes
+                setCurrentPage(1);
               }}
               className="bg-gray-800 border border-gold-600 rounded-lg py-1 px-3 text-gold-100 focus:outline-none focus:ring-2 focus:ring-gold-500 text-sm"
             >
@@ -83,7 +94,7 @@ const ComboTable = ({
               value={itemsPerPage}
               onChange={(e) => {
                 setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1); // Reset to first page when page size changes
+                setCurrentPage(1);
               }}
               className="bg-gray-800 border border-gold-600 rounded-lg py-1 px-3 text-gold-100 focus:outline-none focus:ring-2 focus:ring-gold-500 text-sm"
             >
@@ -103,6 +114,9 @@ const ComboTable = ({
         <table className="min-w-full divide-y divide-gold-600">
           <thead className="bg-gray-900 sticky top-0">
             <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gold-400 uppercase tracking-wider w-8">
+                {/* Expand/collapse column header */}
+              </th>
               <SortableHeader 
                 title="Name" 
                 sortKey="name" 
@@ -144,18 +158,36 @@ const ComboTable = ({
           <tbody className="bg-black divide-y divide-gold-600">
             {paginatedCombos.length > 0 ? (
               paginatedCombos.map((combo) => (
-                <ComboRow 
-                  key={combo._id} 
-                  combo={combo} 
-                  onEdit={handleEditClick}
-                  deleteCombo={deleteCombo}
-                  toggleComboStatus={toggleComboStatus}
-                  openViewModal={openViewModal}
-                />
+                <React.Fragment key={combo._id}>
+                  <ComboRow 
+                    combo={combo} 
+                    onEdit={handleEditClick}
+                    deleteCombo={deleteCombo}
+                    toggleComboStatus={toggleComboStatus}
+                    openViewModal={openViewModal}
+                    isExpanded={expandedRows.has(combo._id)}
+                    toggleExpansion={() => toggleRowExpansion(combo._id)}
+                  />
+                  {expandedRows.has(combo._id) && (
+                    <tr className="bg-gray-900">
+                      <td colSpan={9} className="px-6 py-4">
+                        <div className="flex flex-col sm:flex-row justify-between gap-4">
+                          <div className="flex-1">
+                            <h4 className="text-gold-400 font-semibold mb-2">Description</h4>
+                            <p className="text-gold-200 text-sm">
+                              {combo.description || "No description available"}
+                            </p>
+                          </div>
+                          
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="px-6 py-4 text-center text-sm text-gold-300">
+                <td colSpan="9" className="px-6 py-4 text-center text-sm text-gold-300">
                   {combos.length === 0 ? 'No combos available' : `No combos match your filters${searchTerm ? ` (Search: "${searchTerm}")` : ''}`}
                 </td>
               </tr>
@@ -171,64 +203,72 @@ const ComboTable = ({
             Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredCombos.length)} of {filteredCombos.length} combos
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             <button
               onClick={() => handlePageChange(1)}
               disabled={currentPage === 1}
-              className={`p-1 rounded ${currentPage === 1 ? 'text-gray-500 cursor-not-allowed' : 'text-gold-400 hover:bg-gray-800'}`}
+              className={`p-2 rounded ${currentPage === 1 ? 'text-gray-500 cursor-not-allowed' : 'text-gold-400 hover:bg-gray-800'}`}
+              title="First page"
             >
-              <FiChevronLeft className="w-5 h-5" />
-              <span className="sr-only">First</span>
+              <FiChevronLeft className="w-4 h-4" />
+              <FiChevronLeft className="w-4 h-4 -ml-2" />
             </button>
             
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`p-1 rounded ${currentPage === 1 ? 'text-gray-500 cursor-not-allowed' : 'text-gold-400 hover:bg-gray-800'}`}
+              className={`p-2 rounded ${currentPage === 1 ? 'text-gray-500 cursor-not-allowed' : 'text-gold-400 hover:bg-gray-800'}`}
+              title="Previous page"
             >
-              <FiChevronLeft className="w-5 h-5" />
-              <span className="sr-only">Previous</span>
+              <FiChevronLeft className="w-4 h-4" />
             </button>
             
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum;
-              if (totalPages <= 5) {
-                pageNum = i + 1;
-              } else if (currentPage <= 3) {
-                pageNum = i + 1;
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-              } else {
-                pageNum = currentPage - 2 + i;
-              }
+            <div className="flex items-center mx-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`w-8 h-8 rounded-full text-sm mx-0.5 ${currentPage === pageNum ? 'bg-gold-600 text-white' : 'text-gold-300 hover:bg-gray-800'}`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
               
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => handlePageChange(pageNum)}
-                  className={`w-8 h-8 rounded-full text-sm ${currentPage === pageNum ? 'bg-gold-600 text-white' : 'text-gold-300 hover:bg-gray-800'}`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
+              {totalPages > 5 && (
+                <span className="text-gold-400 text-sm mx-1">...</span>
+              )}
+            </div>
             
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`p-1 rounded ${currentPage === totalPages ? 'text-gray-500 cursor-not-allowed' : 'text-gold-400 hover:bg-gray-800'}`}
+              className={`p-2 rounded ${currentPage === totalPages ? 'text-gray-500 cursor-not-allowed' : 'text-gold-400 hover:bg-gray-800'}`}
+              title="Next page"
             >
-              <FiChevronRight className="w-5 h-5" />
-              <span className="sr-only">Next</span>
+              <FiChevronRight className="w-4 h-4" />
             </button>
             
             <button
               onClick={() => handlePageChange(totalPages)}
               disabled={currentPage === totalPages}
-              className={`p-1 rounded ${currentPage === totalPages ? 'text-gray-500 cursor-not-allowed' : 'text-gold-400 hover:bg-gray-800'}`}
+              className={`p-2 rounded ${currentPage === totalPages ? 'text-gray-500 cursor-not-allowed' : 'text-gold-400 hover:bg-gray-800'}`}
+              title="Last page"
             >
-              <FiChevronRight className="w-5 h-5" />
-              <span className="sr-only">Last</span>
+              <FiChevronRight className="w-4 h-4" />
+              <FiChevronRight className="w-4 h-4 -ml-2" />
             </button>
           </div>
         </div>
@@ -256,56 +296,65 @@ const SortableHeader = ({ title, sortKey, sortConfig, requestSort }) => {
   );
 };
 
-const ComboRow = ({ combo, onEdit, deleteCombo, toggleComboStatus, openViewModal }) => {
+const ComboRow = ({ combo, onEdit, deleteCombo, toggleComboStatus, openViewModal, isExpanded, toggleExpansion }) => {
   const getServiceName = (svc) => {
     return svc.service?.name || svc.name || 'Unknown Service';
   };
 
   return (
-    <tr className="hover:bg-gray-900 transition duration-150" onClick={() => openViewModal(combo)}>
-      <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
-        <div className="text-sm font-medium text-gold-200">{combo.name}</div>
-        {combo.description && (
-          <div className="text-xs text-gold-300 mt-1 line-clamp-1">{combo.description}</div>
-        )}
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <GenderBadge gender={combo.gender} />
-      </td>
-      <td className="px-6 py-4">
-        <ServiceTags services={combo.services} />
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gold-300">
-        {combo.totalDuration} mins
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gold-300">
-        ₹{combo.totalPrice?.toFixed(2) || '0.00'}
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gold-300">
-        {combo.discount || 0}%
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <StatusToggle 
-          isActive={combo.isActive} 
-          toggleStatus={(e) => {
-            e.stopPropagation();
-            toggleComboStatus(combo._id);
-          }} 
-        />
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <ActionButtons 
-          onEdit={(e) => {
-            e.stopPropagation();
-            onEdit(combo, e);
-          }}
-          onDelete={(e) => {
-            e.stopPropagation();
-            deleteCombo(combo._id);
-          }}
-        />
-      </td>
-    </tr>
+    <>
+      <tr className="hover:bg-gray-900 transition duration-150">
+        <td className="px-2 py-4 whitespace-nowrap cursor-pointer" onClick={toggleExpansion}>
+          <div className="text-gold-400 hover:text-gold-300 transition-colors">
+            {isExpanded ? <FiChevronUp /> : <FiChevronDown />}
+          </div>
+        </td>
+        <td className="px-4 py-4 whitespace-nowrap cursor-pointer" onClick={() => openViewModal(combo)}>
+          <div className="flex items-center">
+            <div className="text-sm font-medium text-gold-200">{combo.name}</div>
+            {combo.description && (
+              <FiInfo className="ml-1 text-gold-500 text-xs" title="Has description" />
+            )}
+          </div>
+        </td>
+        <td className="px-4 py-4 whitespace-nowrap" onClick={() => openViewModal(combo)}>
+          <GenderBadge gender={combo.gender} />
+        </td>
+        <td className="px-4 py-4" onClick={() => openViewModal(combo)}>
+          <ServiceTags services={combo.services} />
+        </td>
+        <td className="px-4 py-4 whitespace-nowrap text-sm text-gold-300" onClick={() => openViewModal(combo)}>
+          {combo.totalDuration} mins
+        </td>
+        <td className="px-4 py-4 whitespace-nowrap text-sm text-gold-300" onClick={() => openViewModal(combo)}>
+          ₹{combo.totalPrice?.toFixed(2) || '0.00'}
+        </td>
+        <td className="px-4 py-4 whitespace-nowrap text-sm text-gold-300" onClick={() => openViewModal(combo)}>
+          {combo.discount || 0}%
+        </td>
+        <td className="px-4 py-4 whitespace-nowrap" onClick={() => openViewModal(combo)}>
+          <StatusToggle 
+            isActive={combo.isActive} 
+            toggleStatus={(e) => {
+              e.stopPropagation();
+              toggleComboStatus(combo._id);
+            }} 
+          />
+        </td>
+        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+          <ActionButtons 
+            onEdit={(e) => {
+              e.stopPropagation();
+              onEdit(combo, e);
+            }}
+            onDelete={(e) => {
+              e.stopPropagation();
+              deleteCombo(combo._id);
+            }}
+          />
+        </td>
+      </tr>
+    </>
   );
 };
 

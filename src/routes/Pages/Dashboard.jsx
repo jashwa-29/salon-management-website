@@ -7,27 +7,70 @@ import UpcomingAppointments from '../../Components/dashboardComponents/UpcomingA
 import QuickActions from '../../Components/dashboardComponents/QuickActions';
 import AllAppointmentsModal from '../../Components/dashboardComponents/AllAppointmentsModal';
 import CreateCustomerModal from '../../Components/dashboardComponents/CreateCustomerModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Dashboard() {
-  const { todaysAppointments, services, combos, customers, isLoading, handleStatusUpdate } = useDashboardData();
+  const { 
+    todaysAppointments, 
+    services, 
+    combos, 
+    customers: initialCustomers, 
+    isLoading, 
+    handleStatusUpdate,
+    fetchDashboardData 
+  } = useDashboardData();
+  
   const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
   const [showAllAppointments, setShowAllAppointments] = useState(false);
+  const [customers, setCustomers] = useState([]);
+
+  // Sync local customers state with data from hook
+  useEffect(() => {
+    if (initialCustomers && initialCustomers.length > 0) {
+      setCustomers(initialCustomers);
+    }
+  }, [initialCustomers]);
 
   const filteredAppointments = todaysAppointments.filter(
     app => ['confirmed', 'pending', 'rescheduled'].includes(app.status)
   );
 
+  const handleCustomerCreated = (newCustomer) => {
+    // Update local state
+    setCustomers(prev => [...prev, newCustomer]);
+    
+    // Optional: Refresh dashboard data to ensure everything is in sync
+    // fetchDashboardData();
+  };
+
   const stats = [
-    { title: "Today's Appointments", count: filteredAppointments.length, icon: <Calendar className="w-6 h-6" />, onClick: () => setShowAllAppointments(true) },
-    { title: "Services", count: services.length, icon: <Scissors className="w-6 h-6" /> },
-    { title: "Combos", count: combos.length, icon: <Layers className="w-6 h-6" /> },
-    { title: "Customers", count: customers.length, icon: <Users className="w-6 h-6" /> }
+    { 
+      title: "Today's Appointments", 
+      count: filteredAppointments.length, 
+      icon: <Calendar className="w-6 h-6" />, 
+      onClick: () => setShowAllAppointments(true) 
+    },
+    { 
+      title: "Services", 
+      count: services.length, 
+      icon: <Scissors className="w-6 h-6" /> 
+    },
+    { 
+      title: "Combos", 
+      count: combos.length, 
+      icon: <Layers className="w-6 h-6" /> 
+    },
+    { 
+      title: "Customers", 
+      count: customers.length, 
+      icon: <Users className="w-6 h-6" /> 
+    }
   ];
 
   return (
     <div className="min-h-screen bg-black p-6 space-y-8">
       <DashboardHeader />
+      
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
@@ -35,18 +78,19 @@ export default function Dashboard() {
       ) : (
         <>
           <StatsCards stats={stats} />
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-       
-<UpcomingAppointments
-  appointments={filteredAppointments}
-  onStatusUpdate={handleStatusUpdate}
-  onViewAll={() => setShowAllAppointments(true)}
-/>
-
+            <UpcomingAppointments
+              appointments={filteredAppointments}
+              onStatusUpdate={handleStatusUpdate}
+              onViewAll={() => setShowAllAppointments(true)}
+            />
+            
             <QuickActions onAddCustomer={() => setShowCreateCustomerModal(true)} />
           </div>
         </>
       )}
+      
       {showAllAppointments && (
         <AllAppointmentsModal 
           appointments={filteredAppointments} 
@@ -54,10 +98,11 @@ export default function Dashboard() {
           onStatusUpdate={handleStatusUpdate}
         />
       )}
+      
       {showCreateCustomerModal && (
         <CreateCustomerModal 
           onClose={() => setShowCreateCustomerModal(false)}
-          onCustomerCreated={(newCustomer) => setCustomers(prev => [...prev, newCustomer])}
+          onCustomerCreated={handleCustomerCreated}
         />
       )}
     </div>

@@ -106,7 +106,7 @@ const AdminAppointments = () => {
     if (!timeString) return 'No time';
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours, 10);
-    return `${hour > 12 ? hour - 12 : hour}:${minutes} ${hour >= 12 ? 'PM' : 'AM'}`;
+    return `${hour > 12 ? hour - 12 : hour}:${minutes} `;
   };
 
   const calculateTotal = (appointment) => {
@@ -274,7 +274,7 @@ const AdminAppointments = () => {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="text-sm text-gold-200">{formatDate(appointment.appointmentDate)}</div>
                         <div className="text-xs text-gray-400 flex items-center">
-                          <FiClock className="mr-1" /> {formatTime(appointment.timeSlot)}
+                          <FiClock className="mr-1" />  {formatTime(appointment.timeSlot)}
                         </div>
                       </td>
                       <td className="px-4 py-3">

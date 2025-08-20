@@ -22,7 +22,7 @@ const ComboFormModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full border border-gold-600">
+      <div className="bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-gold-600">
         <div className="flex justify-between items-center border-b border-gold-600 p-4">
           <h3 className="text-lg font-medium text-gold-300">
             {currentCombo ? 'Edit Combo' : 'Create New Combo'}
@@ -36,67 +36,71 @@ const ComboFormModal = ({
             </svg>
           </button>
         </div>
-        <form onSubmit={onSubmit} className="p-6">
-          <FormInput
-            label="Combo Name *"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            required
-          />
-          
-          <FormTextarea
-            label="Description"
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-          />
+        
+        {/* Scrollable content area */}
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={onSubmit} className="p-6">
+            <FormInput
+              label="Combo Name *"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+            />
+            
+            <FormTextarea
+              label="Description"
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+            />
 
-          <GenderSelector
-            label="Gender *"
-            id="gender"
-            name="gender"
-            value={formData.gender}
-            onChange={handleInputChange}
-          />
-          
-          <ServiceSelector
-            services={services}
-            serviceInput={serviceInput}
-            setServiceInput={setServiceInput}
-            sequenceInput={sequenceInput}
-            setSequenceInput={setSequenceInput}
-            addService={addService}
-            selectedGender={formData.gender}
-          />
-          
-          <SelectedServicesList
-            services={formData.services}
-            removeService={removeService}
-          />
-          
-          <FormInput
-            label="Discount (%)"
-            id="discount"
-            name="discount"
-            type="number"
-            min="0"
-            max="100"
-            value={formData.discount}
-            onChange={handleInputChange}
-          />
-          
-          <SummaryCards
-            duration={calculateTotalDuration}
-            price={calculateTotalPrice}
-            originalPrice={formData.services.reduce((sum, svc) => sum + svc.price, 0)}
-            discount={formData.discount}
-          />
-          
-          <FormActions onClose={onClose} isEdit={!!currentCombo} />
-        </form>
+            <GenderSelector
+              label="Gender *"
+              id="gender"
+              name="gender"
+              value={formData.gender}
+              onChange={handleInputChange}
+            />
+            
+            <ServiceSelector
+              services={services}
+              serviceInput={serviceInput}
+              setServiceInput={setServiceInput}
+              sequenceInput={sequenceInput}
+              setSequenceInput={setSequenceInput}
+              addService={addService}
+              selectedGender={formData.gender}
+            />
+            
+            <SelectedServicesList
+              services={formData.services}
+              removeService={removeService}
+            />
+            
+            <FormInput
+              label="Discount (%)"
+              id="discount"
+              name="discount"
+              type="number"
+              min="0"
+              max="100"
+              value={formData.discount}
+              onChange={handleInputChange}
+            />
+            
+            <SummaryCards
+              duration={calculateTotalDuration}
+              price={calculateTotalPrice}
+              originalPrice={formData.services.reduce((sum, svc) => sum + svc.price, 0)}
+              discount={formData.discount}
+            />
+            
+            <FormActions onClose={onClose} isEdit={!!currentCombo} />
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -28,7 +28,7 @@ const AdminServices = () => {
     gender: "",
     isActive: true,
   });
-  const [categories] = useState(["Hair", "Nails", "Skin", "Massage", "Other"]);
+  const [categories] = useState(["Hair", "Beard", "Nails", "Skin", "Massage", "Other"]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState({ key: "createdAt", direction: "desc" });

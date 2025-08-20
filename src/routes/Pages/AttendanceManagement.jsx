@@ -36,7 +36,7 @@ const AttendanceManagement = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // API base URL
-  const API_URL = 'http://localhost:5000/api';
+  const API_URL = 'https://salon-backend-3l2q.onrender.com/api';
 
   // Fetch staff list on component mount
   useEffect(() => {

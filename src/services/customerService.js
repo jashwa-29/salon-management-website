@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000/api/customer";
+const BASE_URL = "https://salon-backend-3l2q.onrender.com/api/customer";
 
 const getToken = () => localStorage.getItem("adminToken");
 
