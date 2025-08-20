@@ -58,6 +58,7 @@ const AttendanceManagement = () => {
         // Fetch today's attendance using the new endpoint
         const attendanceRes = await axios.get(`${API_URL}/attendance/today`);
         setTodaysAttendance(attendanceRes.data.data);
+        console.log('Todays Attendance:', attendanceRes.data.data);
 
         // Fetch upcoming holidays (next 30 days)
         const today = new Date();
@@ -201,12 +202,39 @@ const AttendanceManagement = () => {
     }
   };
 
-  // Format time for display
-  const formatTime = (timeString) => {
-    if (!timeString) return '--:--';
-    const [hours, minutes] = timeString.split(':');
-    return `${hours}:${minutes}`;
-  };
+
+// Format time for display with AM/PM
+const formatTime = (timeString) => {
+  if (!timeString) return '--:--';
+  
+  try {
+    // Handle ISO format (2025-08-20T05:21:00.000Z)
+    if (typeof timeString === 'string' && timeString.includes('T')) {
+      const date = new Date(timeString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        });
+      }
+    }
+    
+    // Handle HH:MM:SS format
+    if (typeof timeString === 'string' && timeString.includes(':')) {
+      const [hours, minutes] = timeString.split(':');
+      const hourNum = parseInt(hours, 10);
+      const period = hourNum >= 12 ? 'PM' : 'AM';
+      const displayHour = hourNum % 12 || 12; // Convert to 12-hour format
+      
+      return `${displayHour}:${minutes.padStart(2, '0')} ${period}`;
+    }
+  } catch (e) {
+    console.error('Error parsing time:', e);
+  }
+  
+  return '--:--';
+};
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -890,47 +918,50 @@ const AttendanceManagement = () => {
             </div>
 
             {/* Present Staff Table */}
-            {todaysAttendance.presentStaff.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-medium mb-2 text-green-400">Present Staff ({todaysAttendance.presentCount})</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-700">
-                    <thead className="bg-gray-700">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Role</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Check In</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Check Out</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Hours</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-700">
-                      {todaysAttendance.presentStaff.map((staff) => (
-                        <tr key={staff.staffId}>
-                          <td className="px-4 py-2 whitespace-nowrap">{staff.name}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{staff.role}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{formatTime(staff.checkIn)}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{formatTime(staff.checkOut)}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{staff.workingHours || '--'}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">
-                            <button
-                              onClick={() => {
-                                fetchAttendanceSummary(staff.staffId);
-                                setShowTodaysStatusModal(false);
-                              }}
-                              className="text-gold-400 hover:text-gold-300 text-sm"
-                            >
-                              Summary
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+          {/* Present Staff Table */}
+{todaysAttendance.presentStaff.length > 0 && (
+  <div className="mb-6">
+    <h3 className="text-lg font-medium mb-2 text-green-400">Present Staff ({todaysAttendance.presentCount})</h3>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-700">
+        <thead className="bg-gray-700">
+          <tr>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Role</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Check In</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Check Out</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Hours</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-700">
+          {todaysAttendance.presentStaff.map((staff) => (
+            <tr key={staff.staffId}>
+              <td className="px-4 py-2 whitespace-nowrap">{staff.name}</td>
+              <td className="px-4 py-2 whitespace-nowrap">{staff.role}</td>
+              <td className="px-4 py-2 whitespace-nowrap">{formatTime(staff.checkIn)}</td>
+              <td className="px-4 py-2 whitespace-nowrap">{formatTime(staff.checkOut)}</td>
+              <td className="px-4 py-2 whitespace-nowrap">
+                {staff.workingHours ? `${staff.workingHours.toFixed(2)} hrs` : '--'}
+              </td>
+              <td className="px-4 py-2 whitespace-nowrap">
+                <button
+                  onClick={() => {
+                    fetchAttendanceSummary(staff.staffId);
+                    setShowTodaysStatusModal(false);
+                  }}
+                  className="text-gold-400 hover:text-gold-300 text-sm"
+                >
+                  Summary
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
 
             {/* Absent Staff Table */}
             {todaysAttendance.absentStaff.length > 0 && (
